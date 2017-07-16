@@ -1,43 +1,55 @@
-const LocalStrategy = require('passport-local').Strategy;
-const User          = require('../models/user-model');
+const passport      = require('passport');
 const bcrypt        = require('bcrypt');
+const LocalStrategy = require('passport-local').Strategy;
+const UserModel     = require('../models/user-model');
 
-module.exports = function (passport) {
+  passport.serializeUser((userFromDB, cb) => {
+    cb(null, userFromDB._id);
+  });
 
-  passport.use(new LocalStrategy((username, password, next) => {
-    User.findOne({ username }, (err, foundUser) => {
+  passport.deserializeUser((userIdFromSession, next) => {
+    UserModel.findById(userIdFromSession, (err, userDocument) => {
       if (err) {
         next(err);
         return;
       }
 
-      if (!foundUser) {
-        next(null, false, { message: 'Incorrect username' });
-        return;
-      }
-
-      if (!bcrypt.compareSync(password, foundUser.password)) {
-        next(null, false, { message: 'Incorrect password' });
-        return;
-      }
-
-      next(null, foundUser);
-    });
-  }));
-
-  passport.serializeUser((loggedInUser, cb) => {
-    cb(null, loggedInUser._id);
-  });
-
-  passport.deserializeUser((userIdFromSession, cb) => {
-    User.findById(userIdFromSession, (err, userDocument) => {
-      if (err) {
-        cb(err);
-        return;
-      }
-
       cb(null, userDocument);
-    });
+    }
+    );
   });
+
+  passport.use(new LocalStrategy(
+    {
+      usernameField: 'loginEmail',
+      passwordField: 'loginPassword'
+    },
+    (apiEmail, apiPassword, next) => {
+      UserModel.findOne(
+        { email: apiEmail }, (err, foundUser) => {
+          if (err) {
+            next(err);
+            return;
+        }
+
+        if (!userFromDB) {
+          next(null, false, { message: 'Invalid email fool' });
+          return;
+        }
+
+        if (!bcrypt.compareSync(apiPassword, userFromDB.encryptedPassword)) {
+          next(null, false, { message: 'Incorrect password fool' });
+          return;
+        }
+
+        next(null, userFromDB);
+      }
+    );
+  }
+));
+
 
 }
+
+
+module.exports =
