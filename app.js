@@ -12,6 +12,7 @@ const session    = require('express-session');
 const passport   = require('passport');
 const authRoutes = require('./routes/authRoutes');
 const myListStuff = require('./routes/list-api-routes');
+const myCardStuff = require('./routes/card-api-routes');
 
 dotenv.config();
 mongoose.connect(process.env.MONGODB_URI);
@@ -55,11 +56,11 @@ app.use(passport.session());
 //------------------ROUTES--------------------
 
 app.use('/', authRoutes);
+app.use('/', myListStuff);
+app.use('/', myCardStuff);
 app.use((req, res, next) => {
   res.sendfile(__dirname + '/public/index.html');
 });
-
-app.use('/', myListStuff);
 
 
 //------------------ERRORS--------------------

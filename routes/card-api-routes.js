@@ -6,6 +6,8 @@ const ensureLoggedInApiVersion = require('../lib/ensure-logged-in-api');
 const ListModel = require ('../models/list-model');
 const CardModel = require ('../models/card-model');
 
+//----------------------------POST ------------------------------------------
+
 router.post('/api/lists/:id/cards', ensureLoggedInApiVersion, (req, res, next) => {
     CardModel
     .findOne({ list: req.params.id })
@@ -51,6 +53,9 @@ router.post('/api/lists/:id/cards', ensureLoggedInApiVersion, (req, res, next) =
 
 }); //close the post route '/api/lists'
 
+
+//----------------------------PATCH ------------------------------------------
+
 router.patch('./api/cards/:id', ensureLoggedInApiVersion, (req, res, next ) => {
     CardModel.findByIdAndUpdate(
         req.params.id,
@@ -85,7 +90,7 @@ router.patch('./api/cards/:id', ensureLoggedInApiVersion, (req, res, next ) => {
     ); //close findById
 }); //close patch '/api/cards/:id'
 
-
+//----------------------------DELETE ------------------------------------------
 router.delete('/api/cards/:id', ensureLoggedInApiVersion, (req, res, next) => {
     CardModel.findByIdAndRemove(
         req.params.id,

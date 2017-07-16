@@ -8,6 +8,7 @@ const UserModel = require('../models/user-model');
 
 const router = express.Router();
 
+//--------------------------------SIGN UP ----------------------
 
 router.post('/api/signup', (req, res, next) => {
     const theFullName = req.body.signupFullName;
@@ -62,6 +63,8 @@ router.post('/api/signup', (req, res, next) => {
 });
 
 
+//--------------------------------LOG IN ----------------------
+
 router.post('/api/login', (req, res, next) => {
     const myFunction = passport.authenticate('local', (err, theUser, failureDetails) => {
         if (err) {
@@ -89,6 +92,7 @@ router.post('/api/login', (req, res, next) => {
     myFunction(req, res, next);
 });
 
+//--------------------------------LOG OUT  ----------------------
 
 router.post('/api/logout', (req, res, next) => {
     req.logout();
