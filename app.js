@@ -59,7 +59,7 @@ app.use('/', authRoutes);
 app.use('/', myListStuff);
 app.use('/', myCardStuff);
 app.use((req, res, next) => {
-  res.sendfile(__dirname + '/public/index.html');
+  res.sendFile(__dirname + '/public/index.html');
 });
 
 
