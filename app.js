@@ -10,18 +10,15 @@ const dotenv       = require('dotenv');
 const cors         = require('cors');
 const session    = require('express-session');
 const passport   = require('passport');
+const authRoutes = require('./routes/authRoutes');
+const myListStuff = require('./routes/list-api-routes');
 
 dotenv.config();
 mongoose.connect(process.env.MONGODB_URI);
 
-// mongoose.connect(process.env.MONGODB_URI);
-
-
 const app = express();
-
 const passportSetup = require('./config/passport');
 passportSetup(passport);
-
 
 // view engine setup
 app.set('views', path.join(__dirname, 'views'));
@@ -30,6 +27,7 @@ app.set('view engine', 'ejs');
 // default value for title local
 app.locals.title = 'Express - Generated with IronGenerator';
 
+//------------------MIDDLEWARE--------------------
 // uncomment after placing your favicon in /public
 //app.use(favicon(path.join(__dirname, 'public', 'favicon.ico')));
 app.use(logger('dev'));
@@ -43,7 +41,6 @@ app.use(cors({
   origin: ['http://localhost:4200']
 }));
 
-
 app.use(session({
   secret: 'angular auth passport secret shh',
   resave: true,
@@ -54,19 +51,18 @@ app.use(session({
 app.use(passport.initialize());
 app.use(passport.session());
 
-const index = require('./routes/index');
 
-app.use('/', index);
+//------------------ROUTES--------------------
 
-const authRoutes = require('./routes/authRoutes');
 app.use('/', authRoutes);
 app.use((req, res, next) => {
   res.sendfile(__dirname + '/public/index.html');
 });
 
-const myListStuff = require('./routes/list-api-routes');
 app.use('/', myListStuff);
 
+
+//------------------ERRORS--------------------
 // catch 404 and forward to error handler
 app.use((req, res, next) => {
   const err = new Error('Not Found');

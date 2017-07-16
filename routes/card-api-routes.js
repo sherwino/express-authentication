@@ -6,8 +6,6 @@ const ensureLoggedInApiVersion = require('../lib/ensure-logged-in-api');
 const ListModel = require ('../models/list-model');
 const CardModel = require ('../models/card-model');
 
-const router = express.Router();
-
 router.post('/api/lists/:id/cards', ensureLoggedInApiVersion, (req, res, next) => {
     CardModel
     .findOne({ list: req.params.id })
@@ -25,7 +23,7 @@ router.post('/api/lists/:id/cards', ensureLoggedInApiVersion, (req, res, next) =
       title:        req.body.cardTitle,
       position:     newPosition,
       list:         req.params.id
-      
+
 
   });
     theCard.save((err) => {
@@ -34,11 +32,11 @@ router.post('/api/lists/:id/cards', ensureLoggedInApiVersion, (req, res, next) =
             return;
         }
         ListModel.findByIdAndUpdate(
-            req.params.id, 
+            req.params.id,
             { $push: { cards: theCard._id } },
             (err, listFromDB) => {
                 if (err) {
-                    res.status(500).json({ message: 'it did not work bruh'})
+                    res.status(500).json({ message: 'it did not work bruh'});
                     return;
                 }
 
@@ -111,7 +109,7 @@ router.delete('/api/cards/:id', ensureLoggedInApiVersion, (req, res, next) => {
               }
             );
         }
-    )
+    );
 }); // close delete '/api/cards/:id
 
-module.exports = router; 
+module.exports = router;
