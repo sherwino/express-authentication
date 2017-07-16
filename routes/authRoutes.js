@@ -1,99 +1,109 @@
-const express    = require('express');
-const passport   = require('passport');
-const bcrypt     = require('bcrypt');
+const passport = require('passport');
+const express = require('express');
+const bcrypt = require('bcrypt');
 
-// Our user model
-const User       = require('../models/user-model');
 
-const authRoutes = express.Router();
+const UserModel = require('../models/user-model');
 
-authRoutes.post('/signup', (req, res, next) => {
-  const username = req.body.username;
-  const password = req.body.password;
 
-  if (!username || !password) {
-    res.status(400).json({ message: 'Provide username and password' });
-    return;
-  }
+const router = express.Router();
 
-  User.findOne({ username }, '_id', (err, foundUser) => {
-    if (foundUser) {
-      res.status(400).json({ message: 'The username already exists' });
+
+router.post('/api/signup', (req, res, next) => {
+    const theFullName = req.body.signupFullName;
+    const theEmail = req.body.signupEmail;
+    const thePassword = req.body.signupPassword;
+
+    if (!theEmail || !thePassword) {
+      res.status(400).json({ message: 'Please provide an email & password' });
       return;
     }
 
-    const salt     = bcrypt.genSaltSync(10);
-    const hashPass = bcrypt.hashSync(password, salt);
+    UserModel.findOne(
+      { email: theEmail },
+      (err, userFromDb) => {
+          if (err) {
+            res.status(500).json({ message: 'Email check went to 💩.' });
+            return;
+          }
 
-    const theUser = new User({
-      username,
-      password: hashPass
-    });
+          if (userFromDb) {
+            res.status(400).json({ message: 'Email is taken, friend.' });
+            return;
+          }
 
-    theUser.save((err) => {
-      if (err) {
-        res.status(400).json({ message: 'Something went wrong' });
-        return;
+          const salt = bcrypt.genSaltSync(10);
+          const scrambledPassword = bcrypt.hashSync(thePassword, salt);
+
+          const theUser = new UserModel({
+            fullName: theFullName,
+            email: theEmail,
+            encryptedPassword: scrambledPassword
+          });
+
+          theUser.save((err) => {
+              if (err) {
+                res.status(500).json({ message: 'User save went to 💩.' });
+                return;
+              }
+
+              // Log in the user automatically after signup
+              req.login(theUser, (err) => {
+                  if (err) {
+                    res.status(500).json({ message: 'Login went to 💩.' });
+                    return;
+                  }
+
+                  res.status(200).json(theUser);
+              });
+          });
       }
+    );
+});
 
-      req.login(theUser, (err) => {
+
+router.post('/api/login', (req, res, next) => {
+    const myFunction = passport.authenticate('local', (err, theUser, failureDetails) => {
         if (err) {
-          res.status(500).json({ message: 'Something went wrong' });
+          res.status(500).json({ message: 'Something went wrong. 💩' });
           return;
         }
 
-        res.status(200).json(req.user);
-      });
-      }
-    );
-  });
-});
+        if (!theUser) {
+          // "failureDetails" contains the error messages
+          // from our logic in "LocalStrategy" { message: 'Email invalid, fool.' }.
+          res.status(401).json(failureDetails);
+          return;
+        }
 
-authRoutes.post('/login', (req, res, next) => {
-  passport.authenticate('local', (err, theUser, failureDetails) => {
-    if (err) {
-      res.status(500).json({ message: 'Something went wrong' });
-      return;
-    }
+        req.login(theUser, (err) => {
+            if (err) {
+              res.status(500).json({ message: 'Passport login went to 💩.' });
+              return;
+            }
 
-    if (!theUser) {
-      res.status(401).json(failureDetails);
-      return;
-    }
-
-    req.login(theUser, (err) => {
-      if (err) {
-        res.status(500).json({ message: 'Something went wrong' });
-        return;
-      }
-
-      // We are now logged in (notice req.user)
-      res.status(200).json(req.user);
+            res.status(200).json(theUser);
+        });
     });
-  })(req, res, next);
+
+    myFunction(req, res, next);
 });
 
-authRoutes.post('/logout', (req, res, next) => {
-  req.logout();
-  res.status(200).json({ message: 'Success' });
+
+router.post('/api/logout', (req, res, next) => {
+    req.logout();
+    res.status(200).json({ message: 'Success 🐉' });
 });
 
-authRoutes.get('/loggedin', (req, res, next) => {
-  if (req.isAuthenticated()) {
-    res.status(200).json(req.user);
-    return;
-  }
 
-  res.status(403).jason({ message: 'Unauthorized'});
+router.get('/api/checklogin', (req, res, next) => {
+    if (req.isAuthenticated()) {
+      res.status(200).json(req.user);
+      return;
+    }
+
+    res.status(403).json({ message: 'Unauthorized' });
 });
 
-  authRoutes.get('/private', (req, res, next) => {
-  if (req.isAuthenticated()) {
-    res.json({ message: 'This is a private message' });
-    return;
-  }
 
-  res.status(403).json({ message: 'Unauthorized' });
-});
-
-module.exports = authRoutes;
+module.exports = router;
