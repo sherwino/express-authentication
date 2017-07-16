@@ -24,7 +24,7 @@ router.post('/api/lists', ensureLoggedInApiVersion, (req, res, next) => {
       position:     newPosition,
       owner:        req.user._id,
 
-  })
+  });
     theList.save((err) => {
         if (err) {
             res.status(500).json({ message: 'list did not work'});

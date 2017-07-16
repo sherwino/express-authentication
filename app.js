@@ -19,7 +19,7 @@ mongoose.connect(process.env.MONGODB_URI);
 
 const app = express();
 const passportSetup = require('./config/passport');
-passportSetup(passport);
+
 
 // view engine setup
 app.set('views', path.join(__dirname, 'views'));
@@ -37,10 +37,7 @@ app.use(bodyParser.urlencoded({ extended: false }));
 app.use(cookieParser());
 app.use(express.static(path.join(__dirname, 'public')));
 app.use(layouts);
-app.use(cors({
-  credentials: true,
-  origin: ['http://localhost:4200']
-}));
+
 
 app.use(session({
   secret: 'angular auth passport secret shh',
@@ -51,7 +48,10 @@ app.use(session({
 
 app.use(passport.initialize());
 app.use(passport.session());
-
+app.use(cors({
+  credentials: true,
+  origin: ['http://localhost:4200']
+}));
 
 //------------------ROUTES--------------------
 

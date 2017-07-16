@@ -1,55 +1,56 @@
-const passport      = require('passport');
-const bcrypt        = require('bcrypt');
-const LocalStrategy = require('passport-local').Strategy;
-const UserModel     = require('../models/user-model');
+const UserModel       = require('../models/user-model');
+const passport        = require('passport');
+const bcrypt          = require('bcrypt');
+const LocalStrategy   = require('passport-local').Strategy;
 
-  passport.serializeUser((userFromDB, cb) => {
-    cb(null, userFromDB._id);
-  });
 
-  passport.deserializeUser((userIdFromSession, next) => {
-    UserModel.findById(userIdFromSession, (err, userDocument) => {
-      if (err) {
-        next(err);
-        return;
-      }
 
-      cb(null, userDocument);
-    }
-    );
-  });
 
-  passport.use(new LocalStrategy(
-    {
-      usernameField: 'loginEmail',
-      passwordField: 'loginPassword'
-    },
-    (apiEmail, apiPassword, next) => {
-      UserModel.findOne(
-        { email: apiEmail }, (err, foundUser) => {
+passport.serializeUser((userFromDb, next) => {
+    next(null, userFromDb._id);
+});
+
+passport.deserializeUser((idFromSession, next) => {
+    UserModel.findById(
+      idFromSession,
+
+      (err, userFromDb) => {
           if (err) {
             next(err);
             return;
-        }
+          }
 
-        if (!userFromDB) {
-          next(null, false, { message: 'Invalid email fool' });
-          return;
-        }
-
-        if (!bcrypt.compareSync(apiPassword, userFromDB.encryptedPassword)) {
-          next(null, false, { message: 'Incorrect password fool' });
-          return;
-        }
-
-        next(null, userFromDB);
+          next(null, userFromDb);
       }
     );
+});
+
+passport.use(new LocalStrategy(
+  {
+    usernameField: 'loginEmail',
+    passwordField: 'loginPassword'
+  },
+  (apiEmail, apiPassword, next) => {
+      UserModel.findOne(
+        { email: apiEmail },
+        (err, userFromDb) => {
+            if (err) {
+              next(err);
+              return;
+            }
+
+            if (!userFromDb) {
+              next(null, false, { message: 'Email invalid, fool.' });
+              return;
+            }
+
+            if (!bcrypt.compareSync(apiPassword, userFromDb.encryptedPassword)) {
+              next(null, false, { message: 'Password invalid, sucka' });
+              return;
+            }
+
+            next(null, userFromDb);
+        });
   }
-));
 
-
-}
-
-
-module.exports =
+) );
